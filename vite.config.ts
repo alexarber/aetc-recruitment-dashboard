@@ -27,14 +27,10 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
-          mui: ['@mui/material', '@mui/icons-material'],
-          charts: ['recharts', 'd3'],
-          ai: ['@tensorflow/tfjs'],
+          ui: ['lucide-react'],
+          pdf: ['jspdf'],
         },
       },
     },
-  },
-  optimizeDeps: {
-    include: ['@tensorflow/tfjs'],
   },
 })
