@@ -67,9 +67,11 @@ const RecruitmentFunnel: React.FC<RecruitmentFunnelProps> = ({
         <CardContent className="p-6">
           <div className="space-y-4">
             {data.map((stage, index) => {
-              // Simple proportional width calculation
+              // Simple proportional width calculation with better visual scaling
               const actualPercentage = (stage.count / data[0].count) * 100;
-              const widthPercentage = Math.max(actualPercentage, 8); // Minimum width for visibility
+              // Use smaller minimum width for stages above 0.5%, keep 8% minimum for tiny stages
+              const minWidth = actualPercentage >= 0.5 ? Math.max(actualPercentage * 0.8, 4) : 8;
+              const widthPercentage = Math.max(actualPercentage, minWidth);
               const isSelected = selectedStage === stage.id;
               const isLastStage = index === data.length - 1;
               
