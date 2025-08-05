@@ -76,8 +76,14 @@ const RecruitmentFunnel: React.FC<RecruitmentFunnelProps> = ({
                 <div key={stage.id} className="space-y-3">
                   {/* Stage Bar */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium text-sm">{stage.name}</h4>
+                    <div 
+                      className="flex items-center justify-between cursor-pointer hover:bg-muted/30 rounded p-2 -m-2 transition-colors"
+                      onClick={() => setSelectedStage(isSelected ? null : stage.id)}
+                    >
+                      <h4 className="font-medium text-sm flex items-center">
+                        {stage.name}
+                        {isSelected && <span className="ml-2 text-xs text-muted-foreground">(click to collapse)</span>}
+                      </h4>
                       <div className="flex items-center space-x-2">
                         <Badge variant={stage.conversionRate >= 70 ? 'positive' : stage.conversionRate >= 40 ? 'neutral' : 'negative'}>
                           {formatPercentage(stage.conversionRate)} conv.
@@ -86,19 +92,23 @@ const RecruitmentFunnel: React.FC<RecruitmentFunnelProps> = ({
                       </div>
                     </div>
                     
-                    <div className="relative">
-                      {/* Background bar */}
-                      <div className="w-full h-8 bg-muted rounded-lg overflow-hidden">
+                    <div 
+                      className={cn(
+                        "relative cursor-pointer transition-all duration-300 hover:scale-[1.02]",
+                        isSelected && "ring-2 ring-primary ring-offset-1 rounded-lg"
+                      )}
+                      onClick={() => setSelectedStage(isSelected ? null : stage.id)}
+                    >
+                      {/* Background bar - full width clickable */}
+                      <div className="w-full h-8 bg-muted rounded-lg overflow-hidden hover:bg-muted/80 transition-colors">
                         {/* Filled bar */}
                         <div
                           className={cn(
                             "h-full flex items-center justify-end px-3 transition-all duration-700",
                             getStageColor(stage.conversionRate),
-                            "cursor-pointer hover:brightness-110",
-                            isSelected && "ring-2 ring-primary ring-offset-1"
+                            "hover:brightness-110"
                           )}
                           style={{ width: `${widthPercentage}%` }}
-                          onClick={() => setSelectedStage(isSelected ? null : stage.id)}
                         >
                           <span className="text-white text-xs font-medium">
                             {formatPercentage(widthPercentage)}
