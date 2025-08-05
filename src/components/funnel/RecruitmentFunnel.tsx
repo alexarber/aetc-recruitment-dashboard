@@ -31,8 +31,6 @@ const RecruitmentFunnel: React.FC<RecruitmentFunnelProps> = ({
   const [selectedStage, setSelectedStage] = useState<string | null>(null);
   const [showDropoffDetails, setShowDropoffDetails] = useState(false);
 
-  const maxCount = Math.max(...data.map(stage => stage.count));
-
   const getStageColor = (conversionRate: number) => {
     if (conversionRate >= 80) return 'bg-green-500';
     if (conversionRate >= 60) return 'bg-blue-500';
@@ -66,72 +64,75 @@ const RecruitmentFunnel: React.FC<RecruitmentFunnelProps> = ({
 
       {/* Funnel Visualization */}
       <Card className="government-card">
-        <CardContent className="p-3 sm:p-6">
-          <div className="space-y-3">
+        <CardContent className="p-6">
+          <div className="flex flex-col items-center space-y-0 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 rounded-lg p-6">
             {data.map((stage, index) => {
-              const widthPercentage = (stage.count / maxCount) * 100;
+              // Better funnel sizing: Logarithmic scale for dramatic visual effect
+              const ratio = stage.count / data[0].count;
+              const logScale = ratio === 1 ? 100 : Math.max(Math.log10(ratio * 9 + 1) * 100, 12);
+              const funnelWidth = Math.min(logScale, 100);
               const isSelected = selectedStage === stage.id;
               const isLastStage = index === data.length - 1;
               
               return (
-                <div key={stage.id} className="space-y-2">
-                  {/* Stage Bar */}
-                  <div className="flex items-center space-x-3">
+                <div key={stage.id} className="w-full flex flex-col items-center space-y-2">
+                  {/* Funnel Stage */}
+                  <div 
+                    className={cn(
+                      "relative cursor-pointer transition-all duration-500 hover:scale-105",
+                      isSelected && "ring-2 ring-primary ring-offset-2 ring-opacity-50"
+                    )}
+                    onClick={() => setSelectedStage(isSelected ? null : stage.id)}
+                    style={{ width: `${funnelWidth}%` }}
+                  >
                     <div
                       className={cn(
-                        "relative cursor-pointer transition-all duration-300 hover:scale-[1.02] flex-1",
-                        isSelected && "ring-2 ring-primary ring-offset-2"
+                        "h-16 flex items-center justify-between px-4 relative overflow-hidden",
+                        getStageColor(stage.conversionRate),
+                        "hover:brightness-110 transition-all duration-300",
+                        index === 0 ? "rounded-t-lg" : index === data.length - 1 ? "rounded-b-lg" : ""
                       )}
-                      onClick={() => setSelectedStage(isSelected ? null : stage.id)}
+                      style={{
+                        clipPath: index === 0 
+                          ? "polygon(0 0, 100% 0, 95% 100%, 5% 100%)"
+                          : index === data.length - 1 
+                            ? "polygon(5% 0, 95% 0, 90% 100%, 10% 100%)"
+                            : "polygon(2% 0, 98% 0, 96% 100%, 4% 100%)"
+                      }}
                     >
-                      {/* Background Bar */}
-                      <div className="w-full h-12 bg-muted rounded-lg overflow-hidden">
-                        {/* Filled Bar */}
-                        <div
-                          className={cn(
-                            "h-full transition-all duration-700 ease-out flex items-center justify-between px-4",
-                            getStageColor(stage.conversionRate),
-                            "hover:brightness-110"
-                          )}
-                          style={{ 
-                            width: `${widthPercentage}%`,
-                            minWidth: '120px'
-                          }}
-                        >
-                          <div className="flex items-center space-x-2">
-                            <Users className="h-4 w-4 text-white" />
-                            <span className="text-white font-medium text-sm truncate">
-                              {stage.name}
-                            </span>
+                      {/* Stage Content */}
+                      <div className="flex items-center space-x-3 z-10 flex-1 min-w-0">
+                        <Users className="h-5 w-5 text-white flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-white font-semibold text-sm truncate">
+                            {stage.name}
                           </div>
-                          <div className="text-white font-bold ml-4">
-                            {formatNumber(stage.count)}
+                          <div className="text-white/80 text-xs">
+                            {formatPercentage(stage.conversionRate)} conversion
                           </div>
                         </div>
                       </div>
-                    </div>
+                      
+                      {/* Count Display */}
+                      <div className="text-white font-bold text-lg z-10 ml-2">
+                        {formatNumber(stage.count)}
+                      </div>
 
-                    {/* Stage Metrics - Now responsive */}
-                    <div className="flex items-center space-x-2 flex-shrink-0">
-                      <Badge 
-                        variant={stage.conversionRate >= 50 ? 'positive' : stage.conversionRate >= 25 ? 'neutral' : 'negative'}
-                        className="text-xs whitespace-nowrap"
-                      >
-                        {formatPercentage(stage.conversionRate)} conv.
-                      </Badge>
-                      {stage.dropOffRate > 50 && (
-                        <AlertTriangle className="h-4 w-4 text-orange-500 flex-shrink-0" />
-                      )}
+                      {/* Gradient overlay for depth */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/10" />
                     </div>
                   </div>
 
-                  {/* Drop-off Arrow */}
+                  {/* Drop-off Section */}
                   {!isLastStage && (
                     <div className="flex items-center justify-center py-1">
-                      <div className="flex items-center space-x-2 text-muted-foreground">
-                        <TrendingDown className="h-4 w-4" />
-                        <span className="text-xs">
+                      <div className="flex items-center space-x-2 px-3 py-1 bg-red-50 border border-red-200 rounded-full">
+                        <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                        <span className="text-xs font-medium text-red-700">
                           {formatPercentage(stage.dropOffRate)} drop-off
+                        </span>
+                        <span className="text-xs text-red-500">
+                          -{formatNumber(stage.count - data[index + 1].count)}
                         </span>
                       </div>
                     </div>
