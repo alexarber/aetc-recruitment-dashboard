@@ -20,10 +20,13 @@ export function formatCurrency(value: number): string {
 }
 
 export function formatPercentage(value: number): string {
+  // For very small percentages, show more decimal places
+  const decimalPlaces = value < 1 ? 3 : value < 10 ? 2 : 1;
+  
   return new Intl.NumberFormat('en-US', {
     style: 'percent',
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
+    minimumFractionDigits: decimalPlaces,
+    maximumFractionDigits: decimalPlaces,
   }).format(value / 100)
 }
 
