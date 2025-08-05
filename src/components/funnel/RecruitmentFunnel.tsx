@@ -68,7 +68,8 @@ const RecruitmentFunnel: React.FC<RecruitmentFunnelProps> = ({
           <div className="space-y-4">
             {data.map((stage, index) => {
               // Simple proportional width calculation
-              const widthPercentage = Math.max((stage.count / data[0].count) * 100, 8);
+              const actualPercentage = (stage.count / data[0].count) * 100;
+              const widthPercentage = Math.max(actualPercentage, 8); // Minimum width for visibility
               const isSelected = selectedStage === stage.id;
               const isLastStage = index === data.length - 1;
               
@@ -111,7 +112,7 @@ const RecruitmentFunnel: React.FC<RecruitmentFunnelProps> = ({
                           style={{ width: `${widthPercentage}%` }}
                         >
                           <span className="text-white text-xs font-medium">
-                            {formatPercentage(widthPercentage)}
+                            {formatPercentage(actualPercentage)}
                           </span>
                         </div>
                       </div>
